@@ -19,15 +19,21 @@ def name(player):
 def move(player, board):
     #Checking values
     while True:
-        print ("enter coords")
+
 
         if player == 1:
         #USER INPUT
+            print ("enter coords")
             move = input()
+
+            #DEBUG:
+            if move == "99" : findHole(board, 'X')
 
         #AI INPUT
         if player == 2:
-            move = randAI()
+            print ("computer moves")
+            move = winningBlockingAI(board)
+            print ("Trying move: " + str(move))
 
         if check_move(board, move): break
 
@@ -54,7 +60,7 @@ def check_move(board, move):
         return False
     #check if taken
     if (board[move_x][move_y] != ''):
-        print ("that spot is taken try again")
+        # print ("that spot is taken try again")
         return False
     else:
         return True
@@ -92,8 +98,10 @@ def is_board_full(board):
 def game():
     board = newBoard()
     printBoard(board)
-    p1 = name("1")
-    p2 = name("2")
+    # p1 = name("1")
+    # p2 = name("2")
+    p1 = "Player1"
+    p2 = "Player2"
 
     winner = None
     players = [p1, p2]
@@ -101,7 +109,7 @@ def game():
 
     while True:
         prompt(players[moveCounter%2])
-        move(moveCounter%2+1, board)
+        move(moveCounter%2+1, board) #alternates between player 1 and 2
         printBoard(board)
         winner = getWinner(board, p1, p2)
         if (not winner == None): break
@@ -113,8 +121,74 @@ def game():
 
     print ("congrats " + winner)
 
-def randAI():
-    return str(randrange(3)) + str(randrange(3))
+def randAI(board):
+    while(True):
+        move = str(randrange(3)) + str(randrange(3))
+        if check_move(board, move): break
+    return move
 
+#example: findHole(board, 'O') Single quotes!!
+#finds and returns coordinates of an almost-won row/column/diagonal
+#playerSym is "X" or "O"
+#currently checks horizontals, verticals, diag1, diag2 and returns only first hole
+def findHole(board, playerSym):
+    #horizontals
+    for row in range(3):
+        thisRow = []
+        for col in range(3):
+            thisRow.append(board[row][col])
+        if thisRow.count(playerSym)== 2:
+            if '' in thisRow: return (str(row) + str(thisRow.index('')))
+
+    #verticals
+    for col in range(3):
+        thisCol = []
+        for row in range(3):
+            thisCol.append(board[row][col])
+        if thisCol.count(playerSym)== 2:
+            if '' in thisCol: return (str(thisCol.index('')) + str(col))
+
+    #diagonal1
+    thisDiag = []
+    for dg in range(3):
+        thisDiag.append(board[dg][dg])
+    if thisDiag.count(playerSym)== 2:
+        if '' in thisDiag: return (str(thisDiag.index('')) + str(thisDiag.index('')))
+
+    #diagonal2
+    thisDiag = []
+    for dg in range(3):
+        thisDiag.append(board[dg][2-dg])
+    if thisDiag.count(playerSym)== 2:
+        if '' in thisDiag: return (str(thisDiag.index('')) + str(2-thisDiag.index('')))
+
+    return "88"
+
+def winningMoveAI(board):
+    move = findHole(board, 'O')
+    if move == "88" :
+        print ("no hole found, random move")
+        move = randAI(board)
+    else:
+        print ("Hole found! I win!")
+    return move
+
+def winningBlockingAI(board):
+    move = findHole(board, 'O')
+
+    if move == "88" :
+        print ("no hole found, trying to block")
+        move = findHole(board, 'X')
+    else:
+        print ("Hole found! I win!")
+        return move
+
+    if move == "88" :
+        print ("no blocking moves found either, random move")
+        move = randAI(board)
+    else:
+        print ("block!!")
+
+    return move
 
 game()
