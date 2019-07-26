@@ -2,12 +2,16 @@ from random import randrange
 
 def newBoard():
     #TODO: make better board
-    board = [['', '', ''],['', '', ''],['', '', '']]
+    board = [['O', '', 'X'],['X', '', 'X'],['', 'O', 'O']]
     return board
 
 def printBoard(board):
-    for x in range(3):
-        print (board[x])
+    for row in range(3):
+        for col in range(3):
+            if board[row][col] == '': print('[]', end=" ") #print empty box
+            else: print (board[row][col], end=" ") #or actual symbol
+            # print (',', end=" ")
+        print()
 
 def prompt(player):
     print (player + ", your move.")
@@ -16,6 +20,12 @@ def name(player):
     print ("Player " + player + ", whats your name")
     return input()
 
+#passed coords are already valid
+#returns the board!!
+def moveTo(char, board, coords):
+    board[int(coords[0])][int(coords[1])] = char
+    return board
+
 def move(player, board):
     #Checking values
     while True:
@@ -23,22 +33,22 @@ def move(player, board):
 
         if player == 1:
         #USER INPUT
-            print ("enter coords")
-            move = input()
-
+            char = 'X'
+            move = minimaxAI(board, char)
+            print (move)
             #DEBUG:
-            if move == "99" : findHole(board, 'X')
+            if move == "99" : print( getLegalMoves(board, char))
 
         #AI INPUT
         if player == 2:
-            print ("computer moves")
-            move = winningBlockingAI(board)
-            print ("Trying move: " + str(move))
+            char = 'O'
+            move = input()
 
-        if check_move(board, move): break
+        if check_move(board, move):
 
-    #set char depending on player
-    char = "X" if player==1 else "O"
+            break
+        else: print("something wrong")
+
 
     #check range and place char on board
     board[int(move[0])][int(move[1])] = char
@@ -60,7 +70,7 @@ def check_move(board, move):
         return False
     #check if taken
     if (board[move_x][move_y] != ''):
-        # print ("that spot is taken try again")
+        print ("that spot is taken try again")
         return False
     else:
         return True
@@ -100,8 +110,8 @@ def game():
     printBoard(board)
     # p1 = name("1")
     # p2 = name("2")
-    p1 = "Player1"
-    p2 = "Player2"
+    p1 = 'X'
+    p2 = 'O'
 
     winner = None
     players = [p1, p2]
@@ -164,8 +174,12 @@ def findHole(board, playerSym):
 
     return "88"
 
-def winningMoveAI(board):
-    move = findHole(board, 'O')
+def winningMoveAI(board, char):
+
+    if (char == 'O'): oppChar = 'X'
+    else: oppChar = 'O'
+
+    move = findHole(board, char)
     if move == "88" :
         print ("no hole found, random move")
         move = randAI(board)
@@ -173,12 +187,16 @@ def winningMoveAI(board):
         print ("Hole found! I win!")
     return move
 
-def winningBlockingAI(board):
-    move = findHole(board, 'O')
+def winningBlockingAI(board, char):
+
+    if (char == 'O'): oppChar = 'X'
+    else: oppChar = 'O'
+
+    move = findHole(board, char)
 
     if move == "88" :
         print ("no hole found, trying to block")
-        move = findHole(board, 'X')
+        move = findHole(board, oppChar)
     else:
         print ("Hole found! I win!")
         return move
@@ -191,4 +209,74 @@ def winningBlockingAI(board):
 
     return move
 
-game()
+#returns score of current state
+def minimax_score(board, char):
+
+    if (char == 'O'): oppChar = 'X'
+    else: oppChar = 'O'
+
+    if getWinner(board, char, oppChar) == 'X':
+        return +10
+    elif (getWinner(board, char, oppChar) == 'O'):
+        return -10
+    elif (is_board_full(board)):
+        return 0
+
+    legalMoves = getLegalMoves(board)
+
+    scores = []
+    for legalMove in legalMoves:
+        newBoard = moveTo(char, board, legalMove)
+        score = minimax_score(newBoard, oppChar)
+        scores.append(score)
+
+
+
+    if char == 'X': return max(scores)
+    else: return min(scores)
+
+def minimaxAI(board, char):
+
+    if (char == 'O'): oppChar = 'X'
+    else: oppChar = 'O'
+
+    legalMoves = getLegalMoves(board)
+    print (legalMoves)
+    scores = []
+    for legalMove in legalMoves:
+        newBoard = moveTo(char, board, legalMove)
+        score = minimax_score(newBoard, oppChar)
+        scores.append(score)
+
+    #FIX THIS:
+    #minimaxAI seems to be called twice?
+    #first round returns proper move, then gets called again with no legal moves
+    print ("scores for " + char)
+    print (scores)
+
+
+    if char == 'X':
+        print("x moves to " + str(legalMoves[scores.index(max(scores))]))
+        return str(legalMoves[scores.index(max(scores))])
+    else:
+        print("o moves to " + str(legalMoves[scores.index(min(scores))]))
+        return str(legalMoves[scores.index(min(scores))])
+
+def getLegalMoves(board):
+
+    legalMoves = []
+
+    for row in range(3):
+        for col in range(3):
+            if board[row][col] == '' :
+                legalMoves.append(str(row)+str(col))
+                print ("found empty spot at " +str(row)+str(col))
+
+    return legalMoves
+
+retry = "y"
+while(retry == "y"):
+    game()
+
+    print ("Again? y/n?")
+    retry = input()
