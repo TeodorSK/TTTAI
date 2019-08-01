@@ -1,16 +1,16 @@
 from random import randrange
+import copy
 
 def newBoard():
     #TODO: make better board
-    board = [['O', '', 'X'],['X', '', 'X'],['', 'O', 'O']]
+    board = [['', '', ''],['', '', ''],['', '', '']]
     return board
 
 def printBoard(board):
     for row in range(3):
         for col in range(3):
-            if board[row][col] == '': print('[]', end=" ") #print empty box
-            else: print (board[row][col], end=" ") #or actual symbol
-            # print (',', end=" ")
+            if board[row][col] == '': print('[ ]', end=" ") #print empty box
+            else: print ("[" + board[row][col] + "]", end=" ") #or actual symbol
         print()
 
 def prompt(player):
@@ -23,31 +23,28 @@ def name(player):
 #passed coords are already valid
 #returns the board!!
 def moveTo(char, board, coords):
-    board[int(coords[0])][int(coords[1])] = char
-    return board
+    _board = copy.deepcopy(board)
+    _board[int(coords[0])][int(coords[1])] = char
+    return _board
 
 def move(player, board):
     #Checking values
     while True:
-
-
         if player == 1:
         #USER INPUT
             char = 'X'
-            move = minimaxAI(board, char)
-            print (move)
+            move = winningMoveAI(board, char)
             #DEBUG:
-            if move == "99" : print( getLegalMoves(board, char))
+            # if move == "99" : print( getLegalMoves(board, char))
 
         #AI INPUT
         if player == 2:
             char = 'O'
-            move = input()
+            move = winningBlockingAI(board, char)
 
         if check_move(board, move):
-
             break
-        else: print("something wrong")
+
 
 
     #check range and place char on board
@@ -69,33 +66,43 @@ def check_move(board, move):
         print("out of range")
         return False
     #check if taken
-    if (board[move_x][move_y] != ''):
-        print ("that spot is taken try again")
+    if (not board[move_x][move_y] == ''):
+        # print ("that spot is taken try again")
         return False
     else:
         return True
 
-def getWinner(board, p1, p2):
-    #check rows and cols
-    for row in range(3):
-        if board[row][0] == board[row][1] == board[row][2] != '':
-            print ("winner " + board[row][0])
-            winner = p1 if board[0][0] == "X" else p2
-            return winner
-    for col in range(3):
-        if board[0][col] == board[1][col] == board[2][col] != '':
-            print ("winner is " + board[0][col])
-            winner = p1 if board[0][0] == "X" else p2
-            return winner
-    #check diag
-    if board[0][0] == board[1][1] == board[2][2] != '':
-        print ("winner is " + board[0][0])
-        winner = p1 if board[0][0] == "X" else p2
-        return winner
-    if board[0][2] == board [1][1] == board[2][0] != '':
-        print ("winner is " + board[0][2])
-        winner = p1 if board[0][0] == "X" else p2
-        return winner
+def getWinner(board):
+    all_line_co_ords = get_all_line_co_ords()
+
+    for line in all_line_co_ords:
+        line_values = [board[x][y] for (x, y) in line]
+        if len(set(line_values)) == 1 and line_values[0] is not None:
+            return line_values[0]
+
+    return None
+
+
+def get_all_line_co_ords():
+    cols = []
+    for x in range(3):
+        col = []
+        for y in range(3):
+            col.append((x, y))
+        cols.append(col)
+
+    rows = []
+    for y in range(3):
+        row = []
+        for x in range(3):
+            row.append((x, y))
+        rows.append(row)
+
+    diagonals = [
+        [(0, 0), (1, 1), (2, 2)],
+        [(0, 2), (1, 1), (2, 0)]
+    ]
+    return cols + rows + diagonals
 
 def is_board_full(board):
     for col in board:
@@ -108,8 +115,6 @@ def is_board_full(board):
 def game():
     board = newBoard()
     printBoard(board)
-    # p1 = name("1")
-    # p2 = name("2")
     p1 = 'X'
     p2 = 'O'
 
@@ -121,8 +126,8 @@ def game():
         prompt(players[moveCounter%2])
         move(moveCounter%2+1, board) #alternates between player 1 and 2
         printBoard(board)
-        winner = getWinner(board, p1, p2)
-        if (not winner == None): break
+        winner = getWinner(board)
+        if (winner == 'X' or winner == 'O'): break
         if is_board_full(board):
             print ("it's a draw")
             winner = "no one"
@@ -130,6 +135,8 @@ def game():
         moveCounter += 1
 
     print ("congrats " + winner)
+
+    return winner
 
 def randAI(board):
     while(True):
@@ -209,15 +216,50 @@ def winningBlockingAI(board, char):
 
     return move
 
+def minimax_score_cache(board, char):
+    if char == 'X': cache=cache_X
+    elif char == 'O': cache=cache_O
+
+    board_id = str(board)
+    if board_id not in cache:
+        if (char == 'O'): oppChar = 'X'
+        else: oppChar = 'O'
+
+        winner = getWinner(board)
+        if (winner == 'X'):
+            return 10
+        elif (winner == 'O'):
+            return -10
+        elif (is_board_full(board)):
+            return 0
+
+        legalMoves = getLegalMoves(board)
+
+        scores = []
+        for legalMove in legalMoves:
+            if check_move(board, legalMove):
+                _board = copy.deepcopy(board)
+                newBoard = moveTo(char, _board, legalMove)
+                score = minimax_score_cache(newBoard, oppChar)
+                scores.append(score)
+
+
+        if char == 'X': cache[board_id] = max(scores)
+        else: cache[board_id] = min(scores)
+    return cache[board_id]
+
 #returns score of current state
+cache_X={}
+cache_O={}
 def minimax_score(board, char):
 
     if (char == 'O'): oppChar = 'X'
     else: oppChar = 'O'
 
-    if getWinner(board, char, oppChar) == 'X':
-        return +10
-    elif (getWinner(board, char, oppChar) == 'O'):
+    winner = getWinner(board)
+    if (winner == 'X'):
+        return 10
+    elif (winner == 'O'):
         return -10
     elif (is_board_full(board)):
         return 0
@@ -226,11 +268,11 @@ def minimax_score(board, char):
 
     scores = []
     for legalMove in legalMoves:
-        newBoard = moveTo(char, board, legalMove)
-        score = minimax_score(newBoard, oppChar)
-        scores.append(score)
-
-
+        if check_move(board, legalMove):
+            _board = copy.deepcopy(board)
+            newBoard = moveTo(char, _board, legalMove)
+            score = minimax_score(newBoard, oppChar)
+            scores.append(score)
 
     if char == 'X': return max(scores)
     else: return min(scores)
@@ -241,25 +283,17 @@ def minimaxAI(board, char):
     else: oppChar = 'O'
 
     legalMoves = getLegalMoves(board)
-    print (legalMoves)
     scores = []
     for legalMove in legalMoves:
-        newBoard = moveTo(char, board, legalMove)
-        score = minimax_score(newBoard, oppChar)
-        scores.append(score)
-
-    #FIX THIS:
-    #minimaxAI seems to be called twice?
-    #first round returns proper move, then gets called again with no legal moves
-    print ("scores for " + char)
-    print (scores)
-
+        if check_move(board, legalMove):
+            _board = copy.deepcopy(board)
+            newBoard = moveTo(char, _board, legalMove)
+            score = minimax_score_cache(newBoard, oppChar)
+            scores.append(score)
 
     if char == 'X':
-        print("x moves to " + str(legalMoves[scores.index(max(scores))]))
         return str(legalMoves[scores.index(max(scores))])
     else:
-        print("o moves to " + str(legalMoves[scores.index(min(scores))]))
         return str(legalMoves[scores.index(min(scores))])
 
 def getLegalMoves(board):
@@ -270,13 +304,19 @@ def getLegalMoves(board):
         for col in range(3):
             if board[row][col] == '' :
                 legalMoves.append(str(row)+str(col))
-                print ("found empty spot at " +str(row)+str(col))
 
     return legalMoves
 
-retry = "y"
-while(retry == "y"):
-    game()
+X_wins = 0
+O_wins = 0
+draws = 0
+for i in range(100):
 
-    print ("Again? y/n?")
-    retry = input()
+    winner = game()
+    if winner == 'X': X_wins += 1
+    elif winner == 'O': O_wins += 1
+    elif winner == 'no one': draws += 1
+
+print(X_wins)
+print(O_wins)
+print(draws)
