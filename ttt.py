@@ -27,25 +27,35 @@ def moveTo(char, board, coords):
     _board[int(coords[0])][int(coords[1])] = char
     return _board
 
+
+#TODO: let game.py modify these vars
+P1 = "winningAI"
+P2 = "minimaxAI"
+
+def setP1AI(_P1):
+    P1 = str(_P1)
+
+def setP2AI(_P2):
+    P2 = str(_P2)
+
 def move(player, board):
-    #Checking values
+
+    if player == 1:
+        char = 'X'
+        AI = P1
+    elif player == 2:
+        char = 'O'
+        AI = P2
+
+    print ("poop" + AI)
+
     while True:
-        if player == 1:
-        #USER INPUT
-            char = 'X'
-            move = winningMoveAI(board, char)
-            #DEBUG:
-            # if move == "99" : print( getLegalMoves(board, char))
+        if AI == "winningAI": move = winningMoveAI(board, char)
+        elif AI == "minimaxAI": move = minimaxAI(board, char)
+        elif AI == "blockingAI": move = winningBlockingAI(board, char)
+        elif AI == "randomAI": move = randAI(board, char)
 
-        #AI INPUT
-        if player == 2:
-            char = 'O'
-            move = winningBlockingAI(board, char)
-
-        if check_move(board, move):
-            break
-
-
+        if check_move(board, move): break
 
     #check range and place char on board
     board[int(move[0])][int(move[1])] = char
@@ -67,7 +77,7 @@ def check_move(board, move):
         return False
     #check if taken
     if (not board[move_x][move_y] == ''):
-        # print ("that spot is taken try again")
+        print ("that spot is taken try again")
         return False
     else:
         return True
@@ -138,7 +148,7 @@ def game():
 
     return winner
 
-def randAI(board):
+def randAI(board, char):
     while(True):
         move = str(randrange(3)) + str(randrange(3))
         if check_move(board, move): break
@@ -189,7 +199,7 @@ def winningMoveAI(board, char):
     move = findHole(board, char)
     if move == "88" :
         print ("no hole found, random move")
-        move = randAI(board)
+        move = randAI(board, char)
     else:
         print ("Hole found! I win!")
     return move
@@ -210,7 +220,7 @@ def winningBlockingAI(board, char):
 
     if move == "88" :
         print ("no blocking moves found either, random move")
-        move = randAI(board)
+        move = randAI(board, char)
     else:
         print ("block!!")
 
@@ -307,16 +317,15 @@ def getLegalMoves(board):
 
     return legalMoves
 
-X_wins = 0
-O_wins = 0
-draws = 0
-for i in range(100):
+def driver(rounds):
+    X_wins = 0
+    O_wins = 0
+    draws = 0
+    for i in range(int(rounds)):
 
-    winner = game()
-    if winner == 'X': X_wins += 1
-    elif winner == 'O': O_wins += 1
-    elif winner == 'no one': draws += 1
+        winner = game()
+        if winner == 'X': X_wins += 1
+        elif winner == 'O': O_wins += 1
+        elif winner == 'no one': draws += 1
 
-print(X_wins)
-print(O_wins)
-print(draws)
+    return (str(X_wins) + " " + str(O_wins) + " " + str(draws))
