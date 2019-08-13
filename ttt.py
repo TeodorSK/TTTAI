@@ -46,7 +46,11 @@ def move(player, board):
         elif AI == "blockingAI": move = winningBlockingAI(board, char)
         elif AI == "randomAI": move = randAI(board, char)
 
-        if check_move(board, move): break
+        try:
+            if check_move(board, move): break
+        except UnboundLocalError:
+            print ("No AI selected")
+            break
 
     #check range and place char on board
     board[int(move[0])][int(move[1])] = char
