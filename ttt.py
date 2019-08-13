@@ -27,25 +27,16 @@ def moveTo(char, board, coords):
     _board[int(coords[0])][int(coords[1])] = char
     return _board
 
-
-#TODO: let game.py modify these vars
-P1 = "winningAI"
-P2 = "minimaxAI"
-
-def setP1AI(_P1):
-    P1 = str(_P1)
-
-def setP2AI(_P2):
-    P2 = str(_P2)
+AI_select = ["winningAI", "minimaxAI"]
 
 def move(player, board):
 
     if player == 1:
         char = 'X'
-        AI = P1
+        AI = AI_select[0]
     elif player == 2:
         char = 'O'
-        AI = P2
+        AI = AI_select[1]
 
     print ("poop" + AI)
 
@@ -317,6 +308,7 @@ def getLegalMoves(board):
 
     return legalMoves
 
+#runs a number of games and records results
 def driver(rounds):
     X_wins = 0
     O_wins = 0
