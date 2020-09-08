@@ -36,7 +36,9 @@ player2L = Label(root, text="Who's O")
 player2L.grid(row=0, column=1)
 
 var1 = StringVar(root)
+var1.set("randomAI")
 var2 = StringVar(root)
+var2.set("randomAI")
 
 roundsLabel = Label(root, text="How many rounds to play?")
 roundsLabel.grid(row=7, column = 0)
@@ -45,33 +47,32 @@ roundsEntry.grid(row=7, column=1)
 
 #Generating all radio buttons
 players = {
-    "Human Player": "player",
+    "Player (test)": "player",
     "Random AI": "randomAI",
     "Winning AI": "winningAI",
     "Winning & Blocking AI": "blockingAI",
     "Minimax god": "minimaxAI"
 }
 
-i = 0
-for val, player in enumerate(players):
-    i += 1
+for (index, player) in enumerate(players):
     Radiobutton(root,
+                indicatoron = 0,
                 text = str(player),
                 variable = var1,
-                value = players[player]).grid(row=i, column=0)
+                value = players[player]).grid(row=index+2, column=0)
 
-i = 0
-for player in players:
-    i += 1
+for (index, player) in enumerate(players):
     Radiobutton(root,
+                indicatoron = 0,
                 text = str(player),
                 variable = var2,
-                value = players[player]).grid(row=i, column=1)
+                value = players[player]).grid(row=index+2, column=1)
 
 button = Button(root, text = "run game", command=runGame)
 button.grid(row=8, column=1)
 
 class inputWindow:
+
     def __init__(self):
         self.top = Toplevel()
 
@@ -79,14 +80,21 @@ class inputWindow:
 
         self.top.title("Choose your move:")
         self.top.geometry("200x200")
-        msg = Message(self.top, text="testy")
-        msg.pack()
+        for i in range(0,9):
+            row = int(i%3)
+            col = int(i/3)
+
+            #Lambda func below uses default values for row, col params, dynamically assigns different functions to each button
+            Button(self.top,
+                text="[]",
+                command=lambda row=row, col=col: self.sendMove(row, col)).grid(row=row, column=col)
+
 
         submitButton = Button(self.top, text="Submit move", command=self.sendMove)
-        submitButton.pack()
 
-    def sendMove(self):
-        print("heha")
+
+    def sendMove(self, row, col):
+        print(str(row) + " " + str(col))        
         self.top.destroy()
 
 
