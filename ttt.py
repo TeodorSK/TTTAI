@@ -1,33 +1,32 @@
 from random import randrange
+from tkinter import messagebox
 import copy
 
 def newBoard():
-    #TODO: make better board
     board = [['', '', ''],['', '', ''],['', '', '']]
     return board
 
-def printBoard(board):
+
+def getBoardASCII(board):
+    result = []
     for row in range(3):
         for col in range(3):
-            if board[row][col] == '': print('[ ]', end=" ") #print empty box
-            else: print ("[" + board[row][col] + "]", end=" ") #or actual symbol
-        print()
+            if board[row][col] == '': result.append('[ ]')
+            else: result.append("[" + board[row][col] + "]")
+        result.append('\n')
+    return ''.join(result)
 
 def prompt(player):
     print (player + ", your move.")
 
-def name(player):
+def promptName(player):
     print ("Player " + player + ", whats your name")
     return input()
 
-#passed coords are already valid
-#returns the board!!
-def moveTo(char, board, coords):
+def executeMove(char, board, coords):
     _board = copy.deepcopy(board)
     _board[int(coords[0])][int(coords[1])] = char
     return _board
-
-AI_select = ["winningAI", "minimaxAI"]
 
 def move(player, board):
 
@@ -38,13 +37,12 @@ def move(player, board):
         char = 'O'
         AI = AI_select[1]
 
-    print ("poop" + AI)
-
     while True:
         if AI == "winningAI": move = winningMoveAI(board, char)
         elif AI == "minimaxAI": move = minimaxAI(board, char)
         elif AI == "blockingAI": move = winningBlockingAI(board, char)
         elif AI == "randomAI": move = randAI(board, char)
+        elif AI == "player": move = playerChooseMove(board, char)
 
         try:
             if check_move(board, move): break
@@ -87,7 +85,6 @@ def getWinner(board):
 
     return None
 
-
 def get_all_line_co_ords():
     cols = []
     for x in range(3):
@@ -112,14 +109,16 @@ def get_all_line_co_ords():
 def is_board_full(board):
     for col in board:
         for sq in col:
-            if sq is '':
+            if sq in '':
                 return False
     return True
 
+
+AI_select = ["winningAI", "minimaxAI"] #AIs selected from wino
 #=====ENGINE=====
-def game():
+def game(showBoardFlag):
     board = newBoard()
-    printBoard(board)
+    if (showBoardFlag): messagebox.showinfo("Move", getBoardASCII(board))
     p1 = 'X'
     p2 = 'O'
 
@@ -129,8 +128,10 @@ def game():
 
     while True:
         prompt(players[moveCounter%2])
-        move(moveCounter%2+1, board) #alternates between player 1 and 2
-        printBoard(board)
+        move(moveCounter%2+1, board)
+
+        if (showBoardFlag): messagebox.showinfo("Move", getBoardASCII(board))
+
         winner = getWinner(board)
         if (winner == 'X' or winner == 'O'): break
         if is_board_full(board):
@@ -142,6 +143,7 @@ def game():
     print ("congrats " + winner)
 
     return winner
+
 
 def randAI(board, char):
     while(True):
@@ -244,7 +246,7 @@ def minimax_score_cache(board, char):
         for legalMove in legalMoves:
             if check_move(board, legalMove):
                 _board = copy.deepcopy(board)
-                newBoard = moveTo(char, _board, legalMove)
+                newBoard = executeMove(char, _board, legalMove)
                 score = minimax_score_cache(newBoard, oppChar)
                 scores.append(score)
 
@@ -275,7 +277,7 @@ def minimax_score(board, char):
     for legalMove in legalMoves:
         if check_move(board, legalMove):
             _board = copy.deepcopy(board)
-            newBoard = moveTo(char, _board, legalMove)
+            newBoard = executeMove(char, _board, legalMove)
             score = minimax_score(newBoard, oppChar)
             scores.append(score)
 
@@ -292,7 +294,7 @@ def minimaxAI(board, char):
     for legalMove in legalMoves:
         if check_move(board, legalMove):
             _board = copy.deepcopy(board)
-            newBoard = moveTo(char, _board, legalMove)
+            newBoard = executeMove(char, _board, legalMove)
             score = minimax_score_cache(newBoard, oppChar)
             scores.append(score)
 
@@ -313,13 +315,13 @@ def getLegalMoves(board):
     return legalMoves
 
 #runs a number of games and records results
-def driver(rounds):
+def driver(rounds, showBoardFlag):
     X_wins = 0
     O_wins = 0
     draws = 0
     for i in range(int(rounds)):
 
-        winner = game()
+        winner = game(showBoardFlag)
         if winner == 'X': X_wins += 1
         elif winner == 'O': O_wins += 1
         elif winner == 'no one': draws += 1

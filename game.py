@@ -5,21 +5,18 @@ import ttt
 HEIGHT = 200
 WIDTH = 150
 
-#hehe
-
-##TODO:
-#Allow player to submit moves in a seperate window
-#check for radio button picked before moving on
 def runGame():
     if roundsEntry.get():
-        ttt.AI_select[0] = var1.get()
-        ttt.AI_select[1] = var2.get()
+        ttt.AI_select[0] = player1.get()
+        ttt.AI_select[1] = player2.get()
 
-        if(var1.get()=="player"):
+        if(player1.get()=="player"):
             i = inputWindow()
             i.playerPrompt()
 
-        messagebox.showinfo("Game", "X O D\n" + ttt.driver(roundsEntry.get()))
+        gameResults = ttt.driver(roundsEntry.get(), showBoardFlag.get())
+        #pass showboardFlag
+        messagebox.showinfo("Game", "X O D\n" + gameResults)
 
 
 root = Tk()
@@ -35,10 +32,13 @@ player1L.grid(row=0, column=0)
 player2L = Label(root, text="Who's O")
 player2L.grid(row=0, column=1)
 
-var1 = StringVar(root)
-var1.set("randomAI")
-var2 = StringVar(root)
-var2.set("randomAI")
+player1 = StringVar(root)
+player1.set("randomAI")
+player2 = StringVar(root)
+player2.set("randomAI")
+showBoardFlag = BooleanVar(root)
+showBoardFlag.set(False)
+
 
 roundsLabel = Label(root, text="How many rounds to play?")
 roundsLabel.grid(row=7, column = 0)
@@ -47,7 +47,7 @@ roundsEntry.grid(row=7, column=1)
 
 #Generating all radio buttons
 players = {
-    "Player (test)": "player",
+    "Human": "player",
     "Random AI": "randomAI",
     "Winning AI": "winningAI",
     "Winning & Blocking AI": "blockingAI",
@@ -58,16 +58,18 @@ for (index, player) in enumerate(players):
     Radiobutton(root,
                 indicatoron = 0,
                 text = str(player),
-                variable = var1,
+                variable = player1,
                 value = players[player]).grid(row=index+2, column=0)
 
 for (index, player) in enumerate(players):
     Radiobutton(root,
                 indicatoron = 0,
                 text = str(player),
-                variable = var2,
+                variable = player2,
                 value = players[player]).grid(row=index+2, column=1)
 
+showBoardCheckbox = Checkbutton(root, text = "Show board after each move?", variable = showBoardFlag)
+showBoardCheckbox.grid(row=9, column=1)
 button = Button(root, text = "run game", command=runGame)
 button.grid(row=8, column=1)
 
